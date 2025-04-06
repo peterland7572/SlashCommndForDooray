@@ -81,6 +81,18 @@ def dooray_webhook():
             return jsonify({"responseType": "ephemeral", "text": "업무 요청이 전송이 실패했습니다."}), 500
 
     elif command == "/jira":
+
+        input_text = data.get("text", "")
+        
+        logger.info("🔹 입력받은 텍스트: %s", input_text)
+
+        tokens = input_text.split()
+
+        mentions = [token for token in tokens if token.startswith("@")]
+
+        logger.info("🔹 Sending Message Data: %s", mentions)
+
+        
         message_data = {
             "text": "📢 Jira 작업을 처리 중입니다...!",
             "channelId": channel_id,
