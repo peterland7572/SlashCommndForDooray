@@ -92,10 +92,12 @@ def dooray_webhook():
         mentions = [token for token in tokens if token.startswith("@")]
         logger.info("jira2 3")
         logger.info("🔹 Sending Message Data: %s", mentions)
-        
+
+        # 멘션들을 문자열로 조합
+        mention_text = " ".join(mentions)
         
         message_data = {
-            "text": "📢 Jira 작업을 처리 중입니다...!",
+            "text": f"{mention_text}📢 Jira 작업을 처리 중입니다...!",
             "channelId": channel_id,
             "triggerId": trigger_id,
             "replaceOriginal": "false",
