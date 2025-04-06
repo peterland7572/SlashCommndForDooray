@@ -80,18 +80,19 @@ def dooray_webhook():
             logger.error(f"❌ Dialog 생성 요청 실패 ({command}): {response.text}")
             return jsonify({"responseType": "ephemeral", "text": "업무 요청이 전송이 실패했습니다."}), 500
 
-    elif command == "/jira":
+    elif command == "/jira2":
+        logger.info("jira2 진입")
 
         input_text = data.get("text", "")
-        
+        logger.info("jira2 1")
         logger.info("🔹 입력받은 텍스트: %s", input_text)
-
+        logger.info("jira2 2")
         tokens = input_text.split()
 
         mentions = [token for token in tokens if token.startswith("@")]
-
+        logger.info("jira2 3")
         logger.info("🔹 Sending Message Data: %s", mentions)
-
+        
         
         message_data = {
             "text": "📢 Jira 작업을 처리 중입니다...!",
