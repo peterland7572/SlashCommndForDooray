@@ -95,6 +95,7 @@ def dooray_webhook():
 
         # 멘션들을 문자열로 조합
         mention_text = " ".join(mentions)
+        logger.info("🔹 입력받은 텍스트: %s", mention_text)
         
         message_data = {
             "text": f"{mention_text}📢 Jira 작업을 처리 중입니다...!",
