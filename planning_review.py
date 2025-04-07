@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+'''
 def get_all_members():
     logger.info("📥 Dooray 전체 멤버 조회 시작")
     
@@ -50,7 +50,7 @@ def get_all_members():
 
     logger.info("👥 전체 멤버 수: %d", len(all_members))
     return all_members
-
+'''
 def get_all_members():
     logger.info("📥 Dooray 전체 멤버 조회 시작")
 
@@ -102,7 +102,6 @@ def get_all_members():
     logger.info("👥 전체 멤버 수: %d", len(all_members))
     return all_members
 
-'''
 def get_member_id_by_name(name):
     logger.info("🔍 이름으로 멤버 조회 시작: '%s'", name)
 
@@ -121,7 +120,7 @@ def get_member_id_by_name(name):
 
     logger.warning("🚫 이름과 일치하는 멤버를 찾지 못함: '%s'", name)
     return None
-'''
+
 
 
 
