@@ -159,7 +159,8 @@ def dooray_webhook():
             logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
     
             # ✅ Dooray 멘션 포맷으로 변경
-            assignee_text = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")"
+            # assignee_text = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")"
+            assignee_text = f"[@홍석기C/SGE PM팀](dooray://3570973279848255571/members/3571008351482084031 \"admin\") "
         else:
             logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
             assignee_text = input_text
