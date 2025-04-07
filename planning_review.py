@@ -29,16 +29,38 @@ def get_member_name_by_id(member_id: str) -> str:
         "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
         "Content-Type": "application/json"
     }
+
+    logger.info("🔍 get_member_name_by_id(): 시작 - member_id=%s", member_id)
+    logger.info("🌐 요청 URL: %s", api_url)
+    logger.info("📡 요청 헤더: %s", headers)
+
     try:
         response = requests.get(api_url, headers=headers)
+        logger.info("📥 응답 상태 코드: %s", response.status_code)
+        logger.debug("📄 응답 바디 (raw): %s", response.text)
+
         if response.status_code == 200:
             data = response.json()
-            return data.get("result", {}).get("name", "알 수 없음")
+            logger.debug("📦 파싱된 JSON: %s", data)
+
+            result = data.get("result")
+            if result:
+                name = result.get("name")
+                if name:
+                    logger.info("✅ 이름 추출 성공: %s", name)
+                    return name
+                else:
+                    logger.warning("⚠️ 이름 필드가 존재하지 않음. result=%s", result)
+            else:
+                logger.warning("⚠️ 'result' 키가 응답에 없음. data=%s", data)
         else:
-            return "알 수 없음"
+            logger.error("❌ Dooray API 요청 실패. status_code=%s, 응답=%s", response.status_code, response.text)
+
     except Exception as e:
-        logger.exception("❌ 예외 발생 during get_member_name_by_id: %s", e)
-        return "알 수 없음"
+        logger.exception("❌ 예외 발생: %s", e)
+
+    return "알 수 없음"
+
         
 
 @app.route("/dooray-webhook", methods=["POST"])
