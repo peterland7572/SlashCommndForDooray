@@ -98,7 +98,7 @@ def dooray_webhook():
 
         logger.info("🔹 멘션 처리 결과: %s", mention_text)
         message_data = {
-            "text": f"{input_text}📢 Jira 작업을 처리 중입니다...!",
+            "text": f"{mention_text}📢 Jira 작업을 처리 중입니다...!",
             "channelId": channel_id,
             "triggerId": trigger_id,
             "replaceOriginal": "false",
