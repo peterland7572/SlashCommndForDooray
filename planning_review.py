@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 def extract_member_id(text: str) -> str:
     """
-    문자열에서 Dooray 멤버 ID(18자리 숫자)를 추출
+    문자열에서 Dooray 멤버 ID를 정확히 추출한다.
     예: (dooray://.../members/3790034441950345057 "member") -> 3790034441950345057
     """
     logger.info(f"📌 extract_member_id(): 입력값 = {text}")
-    match = re.search(r"members/(\d{18})", text)
+    match = re.search(r"members/(\d+)", text)
     if match:
         member_id = match.group(1)
         logger.info(f"✅ 추출된 member_id: {member_id}")
@@ -28,9 +28,6 @@ def extract_member_id(text: str) -> str:
     else:
         logger.warning(f"⚠️ member_id를 추출할 수 없습니다. 원본: {text}")
         return "0"
-
-
-
 
 def get_member_name_by_id(member_id: str) -> str:
     """
