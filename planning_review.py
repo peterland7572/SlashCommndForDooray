@@ -14,76 +14,32 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def extract_member_id(text: str) -> str:
-    """
-    문자열에서 Dooray 멤버 ID를 정확히 추출한다.
-    예: (dooray://.../members/3790034441950345057 "member") -> 3790034441950345057
-    """
-    logger.info(f"📌 extract_member_id(): 입력값 = {text}")
-    match = re.search(r"members/(\d+)", text)
+def extract_member_id_and_role(mention_text: str):
+    """Mentions에서 member ID와 role을 추출하는 함수"""
+    pattern = r'dooray://\d+/members/(\d+)\s+"(member|admin)"'
+    match = re.search(pattern, mention_text)
     if match:
-        member_id = match.group(1)
-        logger.info(f"✅ 추출된 member_id: {member_id}")
-        return member_id
-    else:
-        logger.warning(f"⚠️ member_id를 추출할 수 없습니다. 원본: {text}")
-        return "0"
+        return match.group(1), match.group(2)
+    return None, None
 
 def get_member_name_by_id(member_id: str) -> str:
-    """
-    Dooray 구성원 ID로 구성원의 이름을 반환하는 함수
-    """
+    """Dooray Admin API로 구성원 이름을 조회"""
+    api_url = f"https://admin-api.dooray.com/admin/v1/members/{member_id}"
     headers = {
         "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
         "Content-Type": "application/json"
     }
-
-    url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
     try:
-        logger.info("🔍 get_member_name_by_id(): 시작 - member_id=%s", member_id)
-        logger.info("🌐 요청 URL: %s", url)
-        logger.info("📡 요청 헤더: %s", headers)
-
-        response = requests.get(url, headers=headers)
-        logger.info("📥 응답 상태 코드: %s", response.status_code)
-
+        response = requests.get(api_url, headers=headers)
         if response.status_code == 200:
             data = response.json()
-            logger.info("📦 응답 데이터: %s", data)
-            name = data.get("result", {}).get("name", "알 수 없음")
-            logger.info("👤 조회된 이름: %s", name)
-            return name
+            return data.get("result", {}).get("name", "알 수 없음")
         else:
-            logger.warning(f"❌ 구성원 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
             return "알 수 없음"
     except Exception as e:
-        logger.exception(f"❌ get_member_name_by_id 예외 발생: {e}")
+        logger.exception("❌ 예외 발생 during get_member_name_by_id: %s", e)
         return "알 수 없음"
-
-
-def get_member_role_by_id(member_id: str) -> str:
-    """
-    Dooray 구성원 ID로 구성원의 역할(role)을 반환하는 함수
-    """
-    headers = {
-         "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
-         "Content-Type": "application/json"
-    }
-
-    url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
-    try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            # role 예: admin, member, guest
-            return data.get("role", "역할 정보 없음")
-        else:
-            logger.warning(f"❌ 구성원 역할 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
-            return "역할 정보 없음"
-    except Exception as e:
-        logger.exception(f"❌ get_member_role_by_id 예외 발생: {e}")
-        return "역할 정보 없음"
-
+        
 
 @app.route("/dooray-webhook", methods=["POST"])
 def dooray_webhook():
@@ -504,20 +460,23 @@ def interactive_webhook2():
     title = submission.get("title", "제목 없음")
     content = submission.get("content", "내용 없음")
     document = submission.get("document", "없음")
-    assignee_tags = submission.get("assignee", "")  # 예: <@3570987654321> <@3570123456789>
+    assignee_tags = submission.get("assignee", "")  # 예: (dooray://... "member")
 
-    # 태그 형식 변환 (mention 링크로)
+    # mentions 변환
     mentions = []
     for tag in assignee_tags.split():
-        member_id = extract_member_id(tag)  # 🔍 여기서 정확하게 숫자만 추출
-        name = get_member_name_by_id(member_id)
-        role = get_member_role_by_id(member_id)
-        mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
-        mentions.append(mention)
-
+        member_id, role = extract_member_id_and_role(tag)
+        if member_id and role:
+            name = get_member_name_by_id(member_id)
+            mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
+            mentions.append(mention)
+        else:
+            mentions.append(tag)  # 형식이 안 맞을 경우 원본 유지
 
     assignee_text = " ".join(mentions) if mentions else "없음"
 
+    logger.info("✅ 변환된 assignee mention: %s", assignee_text)
+    
     # 메시지 구성
     response_data = {
         "responseType": "inChannel",
