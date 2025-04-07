@@ -15,6 +15,56 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+
+
+
+def get_member_name_by_id(member_id: str) -> str:
+    """
+    Dooray 구성원 ID로 구성원의 이름을 반환하는 함수
+    """
+    headers = {
+        "Authorization": DOORAY_ADMIN_API_TOKEN,
+        "Content-Type": "application/json"
+    }
+
+    url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            # fullName 또는 name 속성은 Dooray 계정 설정에 따라 다를 수 있음
+            return data.get("name", "알 수 없음")
+        else:
+            logger.warning(f"❌ 구성원 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
+            return "알 수 없음"
+    except Exception as e:
+        logger.exception(f"❌ get_member_name_by_id 예외 발생: {e}")
+        return "알 수 없음"
+
+def get_member_role_by_id(member_id: str) -> str:
+    """
+    Dooray 구성원 ID로 구성원의 역할(role)을 반환하는 함수
+    """
+    headers = {
+        "Authorization": DOORAY_ADMIN_API_TOKEN,
+        "Content-Type": "application/json"
+    }
+
+    url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            # role 예: admin, member, guest
+            return data.get("role", "역할 정보 없음")
+        else:
+            logger.warning(f"❌ 구성원 역할 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
+            return "역할 정보 없음"
+    except Exception as e:
+        logger.exception(f"❌ get_member_role_by_id 예외 발생: {e}")
+        return "역할 정보 없음"
+
+
 @app.route("/dooray-webhook", methods=["POST"])
 def dooray_webhook():
     """Dooray에서 받은 명령을 처리하는 엔드포인트"""
@@ -408,51 +458,6 @@ def interactive_webhook():
 
 
 @app.route("/interactive-webhook2", methods=["POST"])
-def get_member_name_by_id(member_id: str) -> str:
-    """
-    Dooray 구성원 ID로 구성원의 이름을 반환하는 함수
-    """
-    headers = {
-        "Authorization": DOORAY_ADMIN_API_TOKEN,
-        "Content-Type": "application/json"
-    }
-
-    url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
-    try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            # fullName 또는 name 속성은 Dooray 계정 설정에 따라 다를 수 있음
-            return data.get("name", "알 수 없음")
-        else:
-            logger.warning(f"❌ 구성원 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
-            return "알 수 없음"
-    except Exception as e:
-        logger.exception(f"❌ get_member_name_by_id 예외 발생: {e}")
-        return "알 수 없음"
-
-def get_member_role_by_id(member_id: str) -> str:
-    """
-    Dooray 구성원 ID로 구성원의 역할(role)을 반환하는 함수
-    """
-    headers = {
-        "Authorization": DOORAY_ADMIN_API_TOKEN,
-        "Content-Type": "application/json"
-    }
-
-    url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
-    try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            # role 예: admin, member, guest
-            return data.get("role", "역할 정보 없음")
-        else:
-            logger.warning(f"❌ 구성원 역할 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
-            return "역할 정보 없음"
-    except Exception as e:
-        logger.exception(f"❌ get_member_role_by_id 예외 발생: {e}")
-        return "역할 정보 없음"
 
 
 
