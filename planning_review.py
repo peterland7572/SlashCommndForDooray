@@ -464,9 +464,6 @@ def interactive_webhook():
 
 
 @app.route("/interactive-webhook2", methods=["POST"])
-
-
-
 def interactive_webhook2():
     """Dooray /planning_review 요청을 처리하는 웹훅"""
 
@@ -490,31 +487,36 @@ def interactive_webhook2():
     title = submission.get("title", "제목 없음")
     content = submission.get("content", "내용 없음")
     document = submission.get("document", "없음")
-    assignee_tags = submission.get("assignee", "")  # 예: (dooray://... "member")
+    assignee_tags = submission.get("assignee", "")  # 여러 명 가능
 
-    # mentions 변환
     mentions = []
-    for tag in assignee_tags.split():
-        logger.info("🔹 처리 중인 tag: %s", tag)
-    
-        member_id, role = extract_member_id_and_role(tag)
+
+    # ✅ 여러 멘션 추출 (괄호 포함한 문자열)
+    mention_pattern = r'\(dooray://\d+/members/\d+\s+"(?:member|admin)"\)'
+    mentions_raw = re.findall(mention_pattern, assignee_tags)
+    logger.info("🔍 추출된 mention 개수: %d", len(mentions_raw))
+
+    for mention_text in mentions_raw:
+        logger.info("🔹 처리 중인 mention: %s", mention_text)
+
+        member_id, role = extract_member_id_and_role(mention_text)
+        logger.info("🔍 추출된 ID 및 역할: member_id=%s, role=%s", member_id, role)
+
         if member_id and role:
             name = get_member_name_by_id(member_id)
             logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
-    
+
             mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
             logger.info("📎 생성된 mention: %s", mention)
-    
+
             mentions.append(mention)
         else:
-            logger.info("🔁 mention 형식 아님, 원본 유지: %s", tag)
-            mentions.append(tag)
-
+            logger.info("🔁 mention 형식 아님, 원본 유지: %s", mention_text)
+            mentions.append(mention_text)
 
     assignee_text = " ".join(mentions) if mentions else "없음"
+    logger.info("✅ 최종 assignee mention: %s", assignee_text)
 
-    logger.info("✅ 변환된 assignee mention: %s", assignee_text)
-    
     # 메시지 구성
     response_data = {
         "responseType": "inChannel",
@@ -527,11 +529,10 @@ def interactive_webhook2():
                 f"기획서: {document if document != '없음' else '없음'}\n"
                 f"담당자: {assignee_text}"
     }
-    
+
     webhook_url = "https://projectg.dooray.com/services/3570973280734982045/4037981561969473608/QljyNHwGREyQJsAFbMFp7Q"
-    
     headers = {"Content-Type": "application/json"}
-    
+
     response = requests.post(webhook_url, json=response_data, headers=headers)
 
     if response.status_code == 200:
