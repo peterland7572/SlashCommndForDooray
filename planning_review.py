@@ -510,11 +510,11 @@ def interactive_webhook2():
                 f"기획서: {document if document != '없음' else '없음'}\n"
                 f"담당자: {assignee_text}"
     }
-
-    webhook_url = "https://projectg.dooray.com/services/3570973280734982045/4038470695754931917/jX5SWNi7Q5iXgEqMgNT9cw"
-
+    
+    webhook_url = "https://projectg.dooray.com/services/3570973280734982045/4037981561969473608/QljyNHwGREyQJsAFbMFp7Q"
+    
     headers = {"Content-Type": "application/json"}
-
+    
     response = requests.post(webhook_url, json=response_data, headers=headers)
 
     if response.status_code == 200:
