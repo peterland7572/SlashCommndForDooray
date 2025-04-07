@@ -80,30 +80,79 @@ def dooray_webhook():
         else:
             logger.error(f"❌ Dialog 생성 요청 실패 ({command}): {response.text}")
             return jsonify({"responseType": "ephemeral", "text": "업무 요청이 전송이 실패했습니다."}), 500
-
+            
     elif command == "/jira2":
+
         logger.info("jira2 진입")
 
         input_text = data.get("text", "")
+
         logger.info("🔹 원본 텍스트: %s", input_text)
 
-        # orgId → tenantId 로 치환
+        # 멤버 ID 추출
+
         org_id_pattern = r'\(dooray://3570973280734982045/members/(\d+)\s+"member"\)'
-        tenant_id = "3570973279848255571"
 
-        # 멤버 ID만 추출해서 새 링크로 재조립
-        user_ids = re.findall(org_id_pattern, input_text)
-        mentions = [f'(dooray://{tenant_id}/members/{user_id} "member")' for user_id in user_ids]
-        mention_text = " ".join(mentions)
+        member_ids = re.findall(org_id_pattern, input_text)
 
-        logger.info("🔹 멘션 처리 결과: %s", mention_text)
+        logger.info("🔹 추출된 멤버 ID 목록: %s", member_ids)
+
+        # Dooray Admin API를 통해 각 ID의 이름 조회
+
+        mention_texts = []
+
+        for member_id in member_ids:
+
+            try:
+
+                api_url = f"https://admin-api.dooray.com/admin/v1/members/{member_id}"
+
+                headers = {
+
+                    "Authorization": "dooray-api r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg"
+
+                }
+
+                resp = requests.get(api_url, headers=headers)
+
+                if resp.status_code == 200:
+
+                    name = resp.json().get("result", {}).get("name", "Unknown")
+
+                    mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"member\")"
+
+                    mention_texts.append(mention)
+
+                    logger.info("✅ %s (%s) 조회 완료", name, member_id)
+
+                else:
+
+                    logger.warning("⚠️ ID %s 조회 실패: %s", member_id, resp.text)
+
+            except Exception as e:
+
+                logger.error("❌ 멤버 조회 예외 발생: %s", e)
+
+        # 멘션 조합 텍스트
+
+        mention_text = " ".join(mention_texts)
+
+        logger.info("🔹 최종 멘션 텍스트: %s", mention_text)
+
         message_data = {
-            "text": f"{mention_text}📢 Jira 작업을 처리 중입니다...!",
+
+            "text": f"{mention_text} 📢 Jira 작업을 처리 중입니다...!",
+
             "channelId": channel_id,
+
             "triggerId": trigger_id,
+
             "replaceOriginal": "false",
+
             "responseType": "inChannel",
+
             "tenantId": "3570973279848255571"
+
         }
 
         headers = {"token": cmd_token, "Content-Type": "application/json"}
@@ -111,28 +160,50 @@ def dooray_webhook():
         logger.info("🔹 Sending Message Data: %s", message_data)
 
         # Dooray 메시지 전송
+
         response = requests.post(responseUrl, json=message_data, headers=headers)
 
-        # Jira Webhook URL
+        # Jira Webhook 전송
+
         jira_webhook_url = "https://projectg.dooray.com/services/3570973280734982045/4037981561969473608/QljyNHwGREyQJsAFbMFp7Q"
 
         jira_response = requests.post(jira_webhook_url, json=message_data, headers={"Content-Type": "application/json"})
 
         if jira_response.status_code == 200:
+
             logger.info("✅ Jira 메시지 전송 성공")
+
         else:
+
             logger.error("❌ Jira 메시지 전송 실패: %s", jira_response.text)
-            return jsonify({"responseType": "inChannel", "replaceOriginal": "false",
-                            "text": "❌ Jira 메시지 전송에 실패했습니다."}), 500
 
         if response.status_code == 200:
+
             logger.info("✅ Dooray 메시지 전송 성공")
-            return jsonify({"responseType": "inChannel", "replaceOriginal": "false",
-                            "text": "(dooray://3570973280734982045/members/3790034441950345057 \"member\")" "✅ Jira 메시지가 전송되었습니다."}), 200
+
+            return jsonify({
+
+                "responseType": "inChannel",
+
+                "replaceOriginal": "false",
+
+                "text": f"{mention_text} ✅ Jira 메시지가 전송되었습니다."
+
+            }), 200
+
         else:
+
             logger.error("❌ Dooray 메시지 전송 실패: %s", response.text)
-            return jsonify({"responseType": "inChannel", "replaceOriginal": "false",
-                            "text": "❌ Jira 메시지 전송에 실패했습니다."}), 500
+
+            return jsonify({
+
+                "responseType": "inChannel",
+
+                "replaceOriginal": "false",
+
+                "text": "❌ Jira 메시지 전송에 실패했습니다."
+
+            }), 500
 
     return jsonify({"text": "Unknown command", "responseType": "ephemeral"}), 400
 
