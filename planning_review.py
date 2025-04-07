@@ -14,6 +14,23 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def extract_member_id(text: str) -> str:
+    """
+    문자열에서 Dooray 멤버 ID(18자리 숫자)를 추출
+    예: (dooray://.../members/3790034441950345057 "member") -> 3790034441950345057
+    """
+    logger.info(f"📌 extract_member_id(): 입력값 = {text}")
+    match = re.search(r"members/(\d{18})", text)
+    if match:
+        member_id = match.group(1)
+        logger.info(f"✅ 추출된 member_id: {member_id}")
+        return member_id
+    else:
+        logger.warning(f"⚠️ member_id를 추출할 수 없습니다. 원본: {text}")
+        return "0"
+
+
+
 
 def get_member_name_by_id(member_id: str) -> str:
     """
@@ -497,12 +514,12 @@ def interactive_webhook2():
     # 태그 형식 변환 (mention 링크로)
     mentions = []
     for tag in assignee_tags.split():
-        member_id = tag.strip("<@>")
-        role = "member"  # 기본값
+        member_id = extract_member_id(tag)  # 🔍 여기서 정확하게 숫자만 추출
         name = get_member_name_by_id(member_id)
         role = get_member_role_by_id(member_id)
         mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
         mentions.append(mention)
+
 
     assignee_text = " ".join(mentions) if mentions else "없음"
 
