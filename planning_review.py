@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 
 
 DOORAY_ADMIN_API_URL = "https://api.dooray.com/organization/v1/members"
-DOORAY_ADMIN_API_TOKEN = "r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg "  # 반드시 실제 토큰으로 바꿔줘!
+DOORAY_ADMIN_API_TOKEN = "r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg "  # 토큰
 
 
 
