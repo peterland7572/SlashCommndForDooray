@@ -36,8 +36,7 @@ def get_member_name_by_id(member_id: str) -> str:
     logger.info(f"🔍 get_member_name_by_id(): 시작 - member_id={member_id}")
 
     headers = {
-        "Authorization": dooray-api DOORAY_ADMIN_API_TOKEN,
-        "Content-Type": "application/json"
+        "Authorization": dooray-api DOORAY_ADMIN_API_TOKEN
     }
 
     url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
@@ -68,8 +67,7 @@ def get_member_role_by_id(member_id: str) -> str:
     Dooray 구성원 ID로 구성원의 역할(role)을 반환하는 함수
     """
     headers = {
-        "Authorization": dooray-api DOORAY_ADMIN_API_TOKEN,
-        "Content-Type": "application/json"
+        "Authorization": dooray-api DOORAY_ADMIN_API_TOKEN
     }
 
     url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
