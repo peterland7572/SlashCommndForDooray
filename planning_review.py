@@ -14,6 +14,24 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+def get_member_id_by_name(name):
+    api_url = f"https://admin-api.dooray.com/admin/v1/members"
+    headers = {
+        "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    response = requests.get(api_url, headers=headers)
+
+    if response.status_code == 200:
+        members = response.json().get("result", [])
+        for m in members:
+            if m.get("name") == name:
+                return m.get("id")
+    return None
+    
+
+
 def extract_member_id_and_role(mention_text: str):
     """Mentions에서 member ID와 role을 추출하는 함수"""
     logger.info("🔍 extract_member_id_and_role(): 입력 mention = %s", mention_text)
@@ -159,8 +177,7 @@ def dooray_webhook():
             logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
     
             # ✅ Dooray 멘션 포맷으로 변경
-            # assignee_text = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")"
-            assignee_text = f"[@홍석기C/SGE PM팀](dooray://3570973279848255571/members/3571008351482084031 \"admin\") "
+            # assignee_text = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")
 
             assignee_text = "(dooray://3570973280734982045/members/3790034441950345057 \"member\")"
         else:
@@ -492,6 +509,84 @@ def interactive_webhook2():
 
     mentions = []
 
+    # ✅ '@이름' 형식 추출
+    mention_pattern = r'@(\S+)'  # '@홍길동' → '홍길동'
+    names_raw = re.findall(mention_pattern, assignee_tags)
+    logger.info("🔍 추출된 이름 개수: %d", len(names_raw))
+
+    for raw_name in names_raw:
+        logger.info("🔹 처리 중인 이름: %s", raw_name)
+
+        member_id = get_member_id_by_name(raw_name)
+        logger.info("🆔 이름으로 조회한 member_id=%s", member_id)
+
+        if member_id:
+            # Dooray 링크는 실제 멤버 ID로 구성
+            mention = f"[@{raw_name}](dooray://3570973279848255571/members/{member_id} \"member\")"
+            logger.info("📎 생성된 mention: %s", mention)
+            mentions.append(mention)
+        else:
+            logger.warning("❌ 이름으로 member_id를 찾을 수 없음: %s", raw_name)
+            mentions.append(f"@{raw_name} (찾을 수 없음)")
+
+    assignee_text = " ".join(mentions) if mentions else "없음"
+    logger.info("✅ 최종 assignee mention: %s", assignee_text)
+
+    # 메시지 구성
+    response_data = {
+        "responseType": "inChannel",
+        "channelId": channel_id,
+        "triggerId": trigger_id,
+        "replaceOriginal": "false",
+        "text": f"**[기획 검토 요청]**\n"
+                f"제목: {title}\n"
+                f"내용: {content}\n"
+                f"기획서: {document if document != '없음' else '없음'}\n"
+                f"담당자: {assignee_text}"
+    }
+
+    webhook_url = "https://projectg.dooray.com/services/3570973280734982045/4037981561969473608/QljyNHwGREyQJsAFbMFp7Q"
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(webhook_url, json=response_data, headers=headers)
+
+    if response.status_code == 200:
+        logger.info("✅ 기획 검토 메시지 전송 성공")
+        return jsonify({"responseType": "inChannel", "text": "✅ 기획 검토 요청이 전송되었습니다!"}), 200
+    else:
+        logger.error("❌ 기획 검토 메시지 전송 실패: %s", response.text)
+        return jsonify({"responseType": "ephemeral", "text": "❌ 기획 검토 요청 전송에 실패했습니다."}), 500
+
+
+'''
+
+def interactive_webhook2():
+    """Dooray /planning_review 요청을 처리하는 웹훅"""
+
+    logger.info("⚠️interactive_webhook2(): 시작 ⚠️")
+    data = request.json
+    logger.info("📥 Received Interactive Action (planning_review): %s", data)
+
+    tenant_domain = data.get("tenantDomain")
+    channel_id = data.get("channelId")
+    callback_id = data.get("callbackId")
+    trigger_id = data.get("triggerId", "")
+    submission = data.get("submission", {})
+    cmd_token = data.get("cmdToken", "")
+    response_url = data.get("responseUrl", "")
+    command_request_url = data.get("commandRequestUrl", "")
+
+    if not submission:
+        return jsonify({"responseType": "ephemeral", "text": "⚠️ 입력된 데이터가 없습니다."}), 400
+
+    # 폼 입력값 처리
+    title = submission.get("title", "제목 없음")
+    content = submission.get("content", "내용 없음")
+    document = submission.get("document", "없음")
+    assignee_tags = submission.get("assignee", "")  # 여러 명 가능
+
+    mentions = []
+
     # ✅ 여러 멘션 추출 (괄호 포함한 문자열)
     mention_pattern = r'\(dooray://\d+/members/\d+\s+"(?:member|admin)"\)'
     mentions_raw = re.findall(mention_pattern, assignee_tags)
@@ -543,7 +638,7 @@ def interactive_webhook2():
     else:
         logger.error("❌ 기획 검토 메시지 전송 실패: %s", response.text)
         return jsonify({"responseType": "ephemeral", "text": "❌ 기획 검토 요청 전송에 실패했습니다."}), 500
-
+'''
 
 
 if __name__ == "__main__":
