@@ -84,9 +84,18 @@ def dooray_webhook():
         logger.info("jira2 진입")
 
         input_text = data.get("text", "")
-        logger.info("jira2 1")
-        logger.info("🔹 입력받은 텍스트: %s", input_text)
-        logger.info("jira2 2")        
+        logger.info("🔹 원본 텍스트: %s", input_text)
+
+        # orgId → tenantId 로 치환
+        org_id_pattern = r'\(dooray://3570973280734982045/members/(\d+)\s+"member"\)'
+        tenant_id = "3570973279848255571"
+
+        # 멤버 ID만 추출해서 새 링크로 재조립
+        user_ids = re.findall(org_id_pattern, input_text)
+        mentions = [f'(dooray://{tenant_id}/members/{user_id} "member")' for user_id in user_ids]
+        mention_text = " ".join(mentions)
+
+        logger.info("🔹 멘션 처리 결과: %s", mention_text)
         message_data = {
             "text": f"{input_text}📢 Jira 작업을 처리 중입니다...!",
             "channelId": channel_id,
