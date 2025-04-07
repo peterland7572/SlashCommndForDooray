@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 
 
 DOORAY_ADMIN_API_URL = "https://admin-api.dooray.com/admin/v1/members"
-DOORAY_ADMIN_API_TOKEN = "r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg "  # 토큰
+DOORAY_ADMIN_API_TOKEN = "r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg"  # 토큰
 
 
 
@@ -61,27 +61,27 @@ def get_all_members():
     }
 
     all_members = []
-    offset = 0
+    page = 0
     limit = 100
 
     while True:
-        paged_url = f"{api_url}?offset={offset}&limit={limit}"
+        paged_url = f"{api_url}?page={page}&limit={limit}"
         try:
             response = requests.get(paged_url, headers=headers)
             response.raise_for_status()
         except Exception as e:
-            logger.error("❌ 멤버 조회 실패 (offset %d): %s", offset, str(e))
+            logger.error("❌ 멤버 조회 실패 (page %d): %s", page, str(e))
             break
 
         result = response.json().get("result", [])
-        logger.info("📦 받은 멤버 수 (offset %d): %d", offset, len(result))
+        logger.info("📦 받은 멤버 수 (page %d): %d", page, len(result))
 
         if not result:
             break
 
         all_members.extend(result)
 
-        for i, member in enumerate(result, start=offset + 1):
+        for i, member in enumerate(result, start=page * limit + 1):
             name = member.get("name", "이름 없음")
             nickname = member.get("nickname", "닉네임 없음")
             user_code = member.get("userCode", "코드 없음")
@@ -97,10 +97,11 @@ def get_all_members():
         if len(result) < limit:
             break
 
-        offset += limit
+        page += 1
 
     logger.info("👥 전체 멤버 수: %d", len(all_members))
     return all_members
+
 
 def get_member_id_by_name(name):
     logger.info("🔍 이름으로 멤버 조회 시작: '%s'", name)
