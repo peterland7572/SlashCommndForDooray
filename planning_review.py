@@ -15,27 +15,35 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-
-
-
 def get_member_name_by_id(member_id: str) -> str:
     """
     Dooray 구성원 ID로 구성원의 이름을 반환하는 함수
     """
+    logger.info(f"🔍 get_member_name_by_id(): 시작 - member_id={member_id}")
+
     headers = {
         "Authorization": DOORAY_ADMIN_API_TOKEN,
         "Content-Type": "application/json"
     }
 
     url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
+    logger.info(f"🌐 요청 URL: {url}")
+    logger.info(f"📡 요청 헤더: {headers}")
+
     try:
         response = requests.get(url, headers=headers)
+        logger.info(f"📥 응답 상태 코드: {response.status_code}")
+
         if response.status_code == 200:
             data = response.json()
-            # fullName 또는 name 속성은 Dooray 계정 설정에 따라 다를 수 있음
-            return data.get("name", "알 수 없음")
+            logger.info(f"✅ 응답 데이터: {data}")
+
+            name = data.get("name", "알 수 없음")
+            logger.info(f"👤 조회된 이름: {name}")
+            return name
         else:
             logger.warning(f"❌ 구성원 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
+            logger.warning(f"📛 응답 내용: {response.text}")
             return "알 수 없음"
     except Exception as e:
         logger.exception(f"❌ get_member_name_by_id 예외 발생: {e}")
