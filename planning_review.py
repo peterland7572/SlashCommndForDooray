@@ -179,7 +179,8 @@ def dooray_webhook():
             # ✅ Dooray 멘션 포맷으로 변경
             # assignee_text = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")
 
-            assignee_text = "(dooray://3570973280734982045/members/3790034441950345057 \"member\")"
+            # assignee_text = "(dooray://3570973280734982045/members/3790034441950345057 \"member\")"
+            assignee_text = f"[@{name}]"
         else:
             logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
             assignee_text = input_text
