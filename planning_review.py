@@ -90,52 +90,32 @@ def dooray_webhook():
         logger.info("🔹 원본 텍스트: %s", input_text)
 
         # 멤버 ID 추출
-
-        org_id_pattern = r'\(dooray://3570973280734982045/members/(\d+)\s+"member"\)'
-
-        member_ids = re.findall(org_id_pattern, input_text)
-
-        logger.info("🔹 추출된 멤버 ID 목록: %s", member_ids)
-
-        # Dooray Admin API를 통해 각 ID의 이름 조회
-
+        # 수정된 정규식: 역할 (member/admin) 도 함께 추출
+        org_id_pattern = r'\(dooray://3570973280734982045/members/(\d+)\s+"(member|admin)"\)'
+        matches = re.findall(org_id_pattern, input_text)
+        logger.info("🔹 추출된 멤버 ID 및 역할: %s", matches)
+        
         mention_texts = []
-
-        for member_id in member_ids:
-
+        for member_id, role in matches:
             try:
-
                 api_url = f"https://admin-api.dooray.com/admin/v1/members/{member_id}"
-
                 headers = {
-
                     "Authorization": "dooray-api r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg"
-
                 }
-
                 resp = requests.get(api_url, headers=headers)
-
                 if resp.status_code == 200:
-
                     name = resp.json().get("result", {}).get("name", "Unknown")
-
-                    mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"member\")"
-
+                    # 역할 반영
+                    mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
                     mention_texts.append(mention)
-
-                    logger.info("✅ %s (%s) 조회 완료", name, member_id)
-
+                    logger.info("✅ %s (%s, %s) 조회 완료", name, member_id, role)
                 else:
-
                     logger.warning("⚠️ ID %s 조회 실패: %s", member_id, resp.text)
-
             except Exception as e:
-
                 logger.error("❌ 멤버 조회 예외 발생: %s", e)
-
-        # 멘션 조합 텍스트
-
+        
         mention_text = " ".join(mention_texts)
+
 
         logger.info("🔹 최종 멘션 텍스트: %s", mention_text)
 
