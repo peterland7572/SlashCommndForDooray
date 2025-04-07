@@ -4,7 +4,7 @@ import re
 from flask import Flask, request, jsonify
 
 
-DOORAY_ADMIN_API_URL = "https://api.dooray.com/organization/v1/members"
+DOORAY_ADMIN_API_URL = "https://admin-api.dooray.com/admin/v1/members"
 DOORAY_ADMIN_API_TOKEN = "r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg "  # 토큰
 
 
