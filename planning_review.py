@@ -510,10 +510,11 @@ def interactive_webhook2():
 
     mentions = []
 
-    # ✅ '@이름' 형식 추출
-    mention_pattern = r'@(\S+)'  # '@홍길동' → '홍길동'
+    # ✅ '@이름' 형식 추출 (공백 포함된 이름 전체 추출)
+    mention_pattern = r'@([^\n,]+)'  # '@조현웅/SGE 품질검증팀' → '조현웅/SGE 품질검증팀'
     names_raw = re.findall(mention_pattern, assignee_tags)
     logger.info("🔍 추출된 이름 개수: %d", len(names_raw))
+
 
     for raw_name in names_raw:
         logger.info("🔹 처리 중인 이름: %s", raw_name)
