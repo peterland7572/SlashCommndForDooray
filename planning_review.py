@@ -147,48 +147,46 @@ def dooray_webhook():
 
 
     elif command == "/planning_review":
-
         logger.info("🛠 /planning_review 진입")
-
+    
         input_text = data.get("text", "").strip()
-
         logger.info("🔹 원본 텍스트: %s", input_text)
-
-        # 담당자 필드용 텍스트 준비 (입력 그대로 사용)
-
-        assignee_text = input_text
-
+    
+        # 담당자 텍스트 가공
+        member_id, role = extract_member_id_and_role(input_text)
+        if member_id and role:
+            name = get_member_name_by_id(member_id)
+            logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
+    
+            # ✅ Dooray 멘션 포맷으로 변경
+            assignee_text = f"[@{name}](dooray://{tenant_id}/members/{member_id} \"{role}\")"
+        else:
+            logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
+            assignee_text = input_text
+    
         dialog_data = {
-
             "token": cmd_token,
-
             "triggerId": trigger_id,
-
-            "callbackId": "planning_review_dialog",  # 고유 callbackId 설정
-
+            "callbackId": "planning_review_dialog",
             "dialog": {
-
                 "callbackId": "planning_review_dialog",
-
                 "title": "기획 리뷰 요청",
-
                 "submitLabel": "보내기",
-
                 "elements": [
-
-                    {"type": "text", "label": "담당자", "name": "assignee", "optional": False, "value": assignee_text},
-
+                    {
+                        "type": "text",
+                        "label": "담당자",
+                        "name": "assignee",
+                        "optional": False,
+                        "value": assignee_text  # ✅ 변환된 멘션 포맷
+                    },
                     {"type": "text", "label": "제목", "name": "title", "optional": False},
-
                     {"type": "text", "label": "기획서 링크", "name": "document", "optional": False},
-
                     {"type": "textarea", "label": "내용", "name": "content", "optional": False}
-
                 ]
-
             }
-
         }
+
 
         headers = {"token": cmd_token, "Content-Type": "application/json"}
 
