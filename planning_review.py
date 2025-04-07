@@ -16,11 +16,19 @@ logger = logging.getLogger(__name__)
 
 def extract_member_id_and_role(mention_text: str):
     """Mentions에서 member ID와 role을 추출하는 함수"""
+    logger.info("🔍 extract_member_id_and_role(): 입력 mention = %s", mention_text)
+
     pattern = r'dooray://\d+/members/(\d+)\s+"(member|admin)"'
     match = re.search(pattern, mention_text)
+
     if match:
-        return match.group(1), match.group(2)
-    return None, None
+        member_id, role = match.group(1), match.group(2)
+        logger.info("✅ 추출 성공 - member_id: %s, role: %s", member_id, role)
+        return member_id, role
+    else:
+        logger.warning("⚠️ 추출 실패 - mention 형식이 일치하지 않음: %s", mention_text)
+        return None, None
+
 
 def get_member_name_by_id(member_id: str) -> str:
     """Dooray Admin API로 구성원 이름을 조회"""
@@ -487,13 +495,21 @@ def interactive_webhook2():
     # mentions 변환
     mentions = []
     for tag in assignee_tags.split():
+        logger.info("🔹 처리 중인 tag: %s", tag)
+    
         member_id, role = extract_member_id_and_role(tag)
         if member_id and role:
             name = get_member_name_by_id(member_id)
+            logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
+    
             mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
+            logger.info("📎 생성된 mention: %s", mention)
+    
             mentions.append(mention)
         else:
-            mentions.append(tag)  # 형식이 안 맞을 경우 원본 유지
+            logger.info("🔁 mention 형식 아님, 원본 유지: %s", tag)
+            mentions.append(tag)
+
 
     assignee_text = " ".join(mentions) if mentions else "없음"
 
