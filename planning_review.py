@@ -14,24 +14,48 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-def get_member_id_by_name(name):
-    logger.info("🔍 이름으로 멤버 조회 시작: '%s'", name)
-
+def get_all_members():
+    logger.info("📥 Dooray 전체 멤버 조회 시작")
+    
     api_url = "https://admin-api.dooray.com/admin/v1/members"
     headers = {
         "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
         "Content-Type": "application/json"
     }
 
-    response = requests.get(api_url, headers=headers)
+    all_members = []
+    offset = 0
+    limit = 100  # Dooray API가 허용하는 최대 limit 기준 (필요시 더 낮춰도 됨)
 
-    if response.status_code != 200:
-        logger.error("❌ 멤버 API 호출 실패: %s - %s", response.status_code, response.text)
-        return None
+    while True:
+        paged_url = f"{api_url}?offset={offset}&limit={limit}"
+        response = requests.get(paged_url, headers=headers)
 
-    members = response.json().get("result", [])
-    logger.info("👥 총 멤버 수: %d", len(members))
+        if response.status_code != 200:
+            logger.error("❌ 멤버 조회 실패 (%s): %s", response.status_code, response.text)
+            break
+
+        result = response.json().get("result", [])
+        logger.info("📦 받은 멤버 수 (offset %d): %d", offset, len(result))
+
+        if not result:
+            break
+
+        all_members.extend(result)
+
+        if len(result) < limit:
+            break
+
+        offset += limit
+
+    logger.info("👥 전체 멤버 수: %d", len(all_members))
+    return all_members
+
+def get_member_id_by_name(name):
+    logger.info("🔍 이름으로 멤버 조회 시작: '%s'", name)
+
+    members = get_all_members()
+    logger.info("👥 가져온 멤버 수: %d", len(members))
 
     for i, m in enumerate(members):
         m_name = m.get("name")
@@ -45,6 +69,7 @@ def get_member_id_by_name(name):
 
     logger.warning("🚫 이름과 일치하는 멤버를 찾지 못함: '%s'", name)
     return None
+
 
 
 
