@@ -33,35 +33,33 @@ def get_member_name_by_id(member_id: str) -> str:
     """
     Dooray 구성원 ID로 구성원의 이름을 반환하는 함수
     """
-    logger.info(f"🔍 get_member_name_by_id(): 시작 - member_id={member_id}")
-
     headers = {
         "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
         "Content-Type": "application/json"
     }
 
     url = f"{DOORAY_ADMIN_API_URL}/{member_id}"
-    logger.info(f"🌐 요청 URL: {url}")
-    logger.info(f"📡 요청 헤더: {headers}")
-
     try:
+        logger.info("🔍 get_member_name_by_id(): 시작 - member_id=%s", member_id)
+        logger.info("🌐 요청 URL: %s", url)
+        logger.info("📡 요청 헤더: %s", headers)
+
         response = requests.get(url, headers=headers)
-        logger.info(f"📥 응답 상태 코드: {response.status_code}")
+        logger.info("📥 응답 상태 코드: %s", response.status_code)
 
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"✅ 응답 데이터: {data}")
-
-            name = data.get("name", "알 수 없음")
-            logger.info(f"👤 조회된 이름: {name}")
+            logger.info("📦 응답 데이터: %s", data)
+            name = data.get("result", {}).get("name", "알 수 없음")
+            logger.info("👤 조회된 이름: %s", name)
             return name
         else:
             logger.warning(f"❌ 구성원 조회 실패 (ID: {member_id}) - Status: {response.status_code}")
-            logger.warning(f"📛 응답 내용: {response.text}")
             return "알 수 없음"
     except Exception as e:
         logger.exception(f"❌ get_member_name_by_id 예외 발생: {e}")
         return "알 수 없음"
+
 
 def get_member_role_by_id(member_id: str) -> str:
     """
