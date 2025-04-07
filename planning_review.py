@@ -506,7 +506,8 @@ def interactive_webhook2():
             name = get_member_name_by_id(member_id)
             logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
 
-            mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
+            # mention = f"[{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
+            mention = f"(dooray://3570973279848255571/members/{member_id} \"{role}\")"
             logger.info("📎 생성된 mention: %s", mention)
 
             mentions.append(mention)
