@@ -79,7 +79,7 @@ def get_all_members():
             break
 
         all_members.extend(result)
-
+        '''
         for i, member in enumerate(result, start=page * 100 + 1):
             name = member.get("name", "이름 없음")
             nickname = member.get("nickname", "닉네임 없음")
@@ -92,7 +92,7 @@ def get_all_members():
 
             logger.info(f"[{i}] 이름: {name}, 닉네임: {nickname}, 코드: {user_code}, 이메일: {email}, "
                         f"직책: {position}, 부서: {department}, 입사일: {joined_at}, 역할: {role}")
-
+        '''
         if len(result) < 100:
             break
 
@@ -606,7 +606,7 @@ def interactive_webhook2():
     
     logger.info("🔍 추출된 이름 목록: %s", names)
 
-
+    '''
     mentions = []
     for name in names:
         logger.info("🔎 이름 처리 중: %s", name)
@@ -618,7 +618,27 @@ def interactive_webhook2():
         else:
             logger.warning("⚠️ member_id를 찾을 수 없음: %s", name)
             mentions.append(f"@{name} (찾을 수 없음)")
-
+    '''
+    # 1. 전체 멤버 정보 불러오기
+    all_members = get_all_members()
+    
+    # 2. 이름 → ID 매핑 (이름 공백 제거)
+    name_to_id = {
+        member.get("name", "").strip(): member.get("id")
+        for member in all_members if member.get("name") and member.get("id")
+    }
+    
+    # 3. 이름 리스트 준비 (이름 공백 제거 포함)
+    names = [name.strip() for name in names]  # 기존 names 리스트에서 strip 적용
+    
+    # 4. 한번의 루프로 멘션 텍스트 생성
+    mentions = [
+        f"[@{name}](dooray://3570973280734982045/members/{name_to_id[name]} \"member\")"
+        if name in name_to_id else f"@{name} (찾을 수 없음)"
+        for name in names
+    ]
+    
+    # 5. 결과 문자열로 조합
     assignee_text = ", ".join(mentions) if mentions else "없음"
     logger.info("✅ 최종 assignee_text: %s", assignee_text)
 
