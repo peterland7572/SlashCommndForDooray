@@ -405,7 +405,7 @@ def interactive_webhook2():
             logger.info("✅ 멘션 생성: %s", mention)
         else:
             logger.warning("⚠️ 이름 조회 실패: member_id=%s", member_id)
-            mentions.append(f"[unknown](dooray://{tenant_domain}/members/{member_id} \"member\")")
+            mentions.append(f"[unknown](dooray://3570973279848255571/members/{member_id} \"member\")")
 
     assignee_text = ", ".join(mentions) if mentions else "없음"
     logger.info("✅ 최종 assignee_text: %s", assignee_text)
