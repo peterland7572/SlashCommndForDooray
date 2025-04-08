@@ -208,23 +208,28 @@ def dooray_webhook():
         input_text = data.get("text", "").strip()
         logger.info("🔹 원본 텍스트: %s", input_text)
     
-        # 담당자 텍스트 가공
-        member_id, role = extract_member_id_and_role(input_text)
-        if member_id and role:
-            name = get_member_name_by_id(member_id)
-            logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
+        # ✅ 이름들 추출 (예: @홍길동 @김기획)
+        name_pattern = r'@(\S+)'  # 공백 아닌 문자와 @ 조합 추출
+        names = re.findall(name_pattern, input_text)
+        logger.info("🧾 추출된 이름들: %s", names)
     
-            # ✅ 이름만 나열
-            assignee_names = f"@{name}"
+        assignee_names_list = []
+        assignee_ids_list = []
     
-            # ✅ 50자 공백
-            spacing = ' ' * 100
+        for name in names:
+            member_id = get_member_id_by_name(name)
+            if member_id:
+                assignee_names_list.append(f"@{name}")
+                assignee_ids_list.append(member_id)
+                logger.info("👤 이름 매핑: %s → %s", name, member_id)
+            else:
+                logger.warning("❌ 해당 이름에 대한 ID를 찾을 수 없습니다: %s", name)
     
-            # ✅ member_id 나열
-            assignee_ids = member_id
-    
-            # ✅ 최종 포맷
-            assignee_text = f"{assignee_names}{spacing}{assignee_ids}"
+        # ✅ 최종 포맷 구성
+        spacing = ' ' * 100  # 공백
+        assignee_text = f"{' '.join(assignee_names_list)}{spacing}{','.join(assignee_ids_list)}"
+        logger.info("✅ 최종 assignee_text: %s", assignee_text)
+
         else:
             logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
             assignee_text = input_text
