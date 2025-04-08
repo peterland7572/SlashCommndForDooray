@@ -225,9 +225,9 @@ def dooray_webhook():
     
             # ✅ 최종 포맷
             assignee_text = f"{assignee_names}{spacing}{assignee_ids}"
-    else:
-        logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
-        assignee_text = input_text
+        else:
+            logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
+            assignee_text = input_text
 
         dialog_data = {
             "token": cmd_token,
