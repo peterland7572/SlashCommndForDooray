@@ -176,7 +176,7 @@ def dooray_webhook():
 
                 "elements": [
 
-                    {"type": "text", "label": "담당자", "name": "assignee", "optional": False, "value": assignee_text},
+                    {"type": "text", "label": "담당자", "name": "assignee","subtype": "email", "optional": False, "value": assignee_text},
 
                     {"type": "text", "label": "제목", "name": "title", "optional": False},
 
