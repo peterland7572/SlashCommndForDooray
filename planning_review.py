@@ -199,24 +199,32 @@ def dooray_webhook():
         logger.info("💓 Heartbeat 요청 수신됨")
         return jsonify({"status": "alive"}), 200
 
-    # logger.info("📌 Received command: %s", command)
-    # logger.info("📌 Mapped callbackId: %s", callback_ids[command])
+        # logger.info("📌 Received command: %s", command)
+        # logger.info("📌 Mapped callbackId: %s", callback_ids[command])
 
-    if command == "/planning_review":
-        logger.info("🛠 /planning_review 진입")
-
-        input_text = data.get("text", "").strip()
-        logger.info("🔹 원본 텍스트: %s", input_text)
-
-        # 담당자 텍스트 가공
-        member_id, role = extract_member_id_and_role(input_text)
-        if member_id and role:
-            name = get_member_name_by_id(member_id)
-            logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
-
-            # ✅ Dooray 멘션 포맷으로 변경
-            assignee_text = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")"
-
+        if command == "/planning_review":
+            logger.info("🛠 /planning_review 진입")
+        
+            input_text = data.get("text", "").strip()
+            logger.info("🔹 원본 텍스트: %s", input_text)
+        
+            # 담당자 텍스트 가공
+            member_id, role = extract_member_id_and_role(input_text)
+            if member_id and role:
+                name = get_member_name_by_id(member_id)
+                logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
+        
+                # ✅ 이름만 나열
+                assignee_names = f"@{name}"
+        
+                # ✅ 50자 공백
+                spacing = ' ' * 50
+        
+                # ✅ member_id 나열
+                assignee_ids = member_id
+        
+                # ✅ 최종 포맷
+                assignee_text = f"{assignee_names}{spacing}{assignee_ids}"
         else:
             logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
             assignee_text = input_text
