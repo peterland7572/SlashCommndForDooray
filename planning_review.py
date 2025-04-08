@@ -400,7 +400,7 @@ def interactive_webhook2():
     for member_id in member_ids:
         name = get_member_name_by_id(member_id)
         if name:
-            mention = f"[@{name}](dooray://{tenant_domain}/members/{member_id} \"member\")"
+            mention = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"member\")"
             mentions.append(mention)
             logger.info("✅ 멘션 생성: %s", mention)
         else:
