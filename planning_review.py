@@ -191,11 +191,43 @@ def dooray_webhook():
 
             }
 
+            payload  = {
+
+            "token": cmd_token,
+
+            "triggerId": trigger_id,
+
+            "callbackId": "planning_review_dialog",  # 고유 callbackId 설정
+
+            "state": json.dumps({ "assigneeRaw": assignee_text, "someFlag": True }),
+
+            "dialog": {
+
+                "callbackId": "planning_review_dialog",
+
+                "title": "기획 리뷰 요청",
+
+                "submitLabel": "보내기",
+
+                "elements": [
+
+                    {"type": "text", "label": "담당자", "name": "assignee", "optional": False, "value": assignee_text},
+
+                    {"type": "text", "label": "제목", "name": "title", "optional": False},
+
+                    {"type": "text", "label": "기획서 링크", "name": "document", "optional": False},
+
+                    {"type": "textarea", "label": "내용", "name": "content", "optional": False}
+
+                ]
+
+            }
+
         }
 
         headers = {"token": cmd_token, "Content-Type": "application/json"}
 
-        response = requests.post(dooray_dialog_url, json=dialog_data, headers=headers)
+        response = requests.post(dooray_dialog_url, json=payload, headers=headers)
 
         if response.status_code == 200:
 
