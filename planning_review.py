@@ -218,7 +218,7 @@ def dooray_webhook():
             assignee_names = f"@{name}"
     
             # ✅ 50자 공백
-            spacing = ' ' * 50
+            spacing = ' ' * 100
     
             # ✅ member_id 나열
             assignee_ids = member_id
