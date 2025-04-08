@@ -649,10 +649,15 @@ def interactive_webhook2():
         "triggerId": trigger_id,
         "replaceOriginal": "false",
         "text": f"**[기획 검토 요청]**\n"
-                f"제목: {title}\n"
-                f"내용: {content}\n"
+                f"제목: << {title} >>\n"
                 f"기획서: {document if document != '없음' else '없음'}\n"
+                f"내용: {content}\n"
                 f"담당자: {assignee_text}"
+                f"참조: [@홍석기C/SGE PM팀](dooray://3570973279848255571/members/3571008351482084031 \"admin\") "  # [@홍석기C/SGE PM팀]
+                f"[@노승한/SGE PM팀](dooray://3570973279848255571/members/3571008626725314977 \"admin\") "  # [@노승한/SGE PM팀]
+                f"[@김주현D/SGE PM팀](dooray://3570973279848255571/members/3898983631689925324 \"member\") \n"  # [@김주현D/SGE PM팀]
+                "(dooray://3570973279848255571/members/3898983631689925324 \"member\") \n"
+                
     }
 
     webhook_url = "https://projectg.dooray.com/services/3570973280734982045/4037981561969473608/QljyNHwGREyQJsAFbMFp7Q"
