@@ -609,7 +609,7 @@ def interactive_webhook2():
         logger.info("🔎 이름 처리 중: %s", name)
         member_id = get_member_id_by_name(name)
         if member_id:
-            mention = f"[@{name}](dooray://{tenant_domain}/members/{member_id} \"member\")"
+            mention = f"[@{name}](dooray://3570973280734982045/members/{member_id} \"member\")"
             logger.info("✅ 멘션 생성 완료: %s", mention)
             mentions.append(mention)
         else:
