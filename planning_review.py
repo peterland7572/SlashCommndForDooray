@@ -633,7 +633,7 @@ def interactive_webhook2():
     
     # 4. 한번의 루프로 멘션 텍스트 생성
     mentions = [
-        f"[@{name}](dooray://3570973280734982045/members/{name_to_id[name]} \"member\")"
+        f"[@{name}](dooray://3570973279848255571/members/{name_to_id[name]} \"member\")"
         if name in name_to_id else f"@{name} (찾을 수 없음)"
         for name in names
     ]
