@@ -599,8 +599,11 @@ def interactive_webhook2():
     assignee_tags = submission.get("assignee", "")  # ex) "@김철수 @박영희/기획팀"
 
     # ✅ '@이름' 형식 추출 (공백 포함된 이름 전체 추출)
-    mention_pattern = r'@([^\n,@]+)'  # '@조현웅/SGE 품질검증팀' → '조현웅/SGE 품질검증팀'
-    names = re.findall(mention_pattern, assignee_tags)
+    # mention_pattern = r'@([^\n,@]+)'  # '@조현웅/SGE 품질검증팀' → '조현웅/SGE 품질검증팀'
+    # names = re.findall(mention_pattern, assignee_tags)
+    mention_pattern = r'@([^\n,@]+)'
+    names = [name.strip() for name in re.findall(mention_pattern, assignee_tags)]
+    
     logger.info("🔍 추출된 이름 목록: %s", names)
 
 
