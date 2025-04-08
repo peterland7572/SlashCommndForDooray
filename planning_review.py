@@ -596,35 +596,28 @@ def interactive_webhook2():
     title = submission.get("title", "제목 없음")
     content = submission.get("content", "내용 없음")
     document = submission.get("document", "없음")
-    assignee_tags = submission.get("assignee", "")  # 여러 명 가능
+    assignee_tags = submission.get("assignee", "")  # Dooray 멘션 포맷 문자열들
+
+    # ✅ 멤버 ID 목록 추출 (복수 가능)
+    id_pattern = r'\(dooray://\d+/members/(\d+)\s+"(?:member|admin)"\)'
+    member_ids = re.findall(id_pattern, assignee_tags)
+    logger.info("🔍 추출된 member_id 목록: %s", member_ids)
 
     mentions = []
-
-    # ✅ '@이름' 형식 추출 (공백 포함된 이름 전체 추출)
-    mention_pattern = r'@([^\n,]+)'  # '@조현웅/SGE 품질검증팀' → '조현웅/SGE 품질검증팀'
-    names_raw = re.findall(mention_pattern, assignee_tags)
-    logger.info("🔍 추출된 이름 개수: %d", len(names_raw))
-
-
-    for raw_name in names_raw:
-        logger.info("🔹 처리 중인 이름: %s", raw_name)
-
-        member_id = get_member_id_by_name(raw_name)
-        logger.info("🆔 이름으로 조회한 member_id=%s", member_id)
-
-        if member_id:
-            # Dooray 링크는 실제 멤버 ID로 구성
-            mention = f"[@{raw_name}](dooray://3570973279848255571/members/{member_id} \"member\")"
-            logger.info("📎 생성된 mention: %s", mention)
+    for member_id in member_ids:
+        name = get_member_name_by_id(member_id)
+        if name:
+            mention = f"[@{name}](dooray://{tenant_domain}/members/{member_id} \"member\")"
             mentions.append(mention)
+            logger.info("✅ 멘션 생성: %s", mention)
         else:
-            logger.warning("❌ 이름으로 member_id를 찾을 수 없음: %s", raw_name)
-            mentions.append(f"@{raw_name} (찾을 수 없음)")
+            logger.warning("⚠️ 이름 조회 실패: member_id=%s", member_id)
+            mentions.append(f"[unknown](dooray://{tenant_domain}/members/{member_id} \"member\")")
 
-    assignee_text = " ".join(mentions) if mentions else "없음"
-    logger.info("✅ 최종 assignee mention: %s", assignee_text)
+    assignee_text = ", ".join(mentions) if mentions else "없음"
+    logger.info("✅ 최종 assignee_text: %s", assignee_text)
 
-    # 메시지 구성
+    # ✅ 메시지 구성
     response_data = {
         "responseType": "inChannel",
         "channelId": channel_id,
@@ -648,6 +641,7 @@ def interactive_webhook2():
     else:
         logger.error("❌ 기획 검토 메시지 전송 실패: %s", response.text)
         return jsonify({"responseType": "ephemeral", "text": "❌ 기획 검토 요청 전송에 실패했습니다."}), 500
+
 
 
 '''
