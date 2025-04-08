@@ -125,20 +125,14 @@ def get_member_id_by_name(name):
 
 
 
-def extract_member_id_and_role(mention_text: str):
-    """Mentions에서 member ID와 role을 추출하는 함수"""
-    logger.info("🔍 extract_member_id_and_role(): 입력 mention = %s", mention_text)
-
-    pattern = r'dooray://\d+/members/(\d+)\s+"(member|admin)"'
-    match = re.search(pattern, mention_text)
-
-    if match:
-        member_id, role = match.group(1), match.group(2)
-        logger.info("✅ 추출 성공 - member_id: %s, role: %s", member_id, role)
-        return member_id, role
-    else:
-        logger.warning("⚠️ 추출 실패 - mention 형식이 일치하지 않음: %s", mention_text)
-        return None, None
+def extract_member_ids_and_roles(mention_text):
+    """
+    mention_text에서 (dooray://.../members/{id} "role") 형태로 되어 있는 멘션들을 파싱하여
+    member_id와 role 리스트로 반환
+    """
+    pattern = r'\(dooray://\d+/members/(\d+)\s+"(member|admin)"\)'
+    matches = re.findall(pattern, mention_text)
+    return matches  # List of (member_id, role)
 
 
 def get_member_name_by_id(member_id: str) -> str:
@@ -264,16 +258,20 @@ def dooray_webhook():
         logger.info("🔹 원본 텍스트: %s", input_text)
     
         # 담당자 텍스트 가공
-        member_id, role = extract_member_id_and_role(input_text)
-        if member_id and role:
-            name = get_member_name_by_id(member_id)
-            logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
-    
-            # ✅ Dooray 멘션 포맷으로 변경
-            # assignee_text = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")
+        member_roles = extract_member_ids_and_roles(input_text)
 
-            # assignee_text = "(dooray://3570973280734982045/members/3790034441950345057 \"member\")"
-            assignee_text = f"@{name}"
+        assignee_text = ""
+        if member_roles:
+            mentions = []
+            for member_id, role in member_roles:
+                name = get_member_name_by_id(member_id)
+                if name:
+                    logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
+                    mentions.append(f"@{name}")
+                else:
+                    logger.warning("⚠️ 이름 조회 실패: member_id=%s", member_id)
+                    mentions.append(f"[unknown:{member_id}]")
+            assignee_text = " ".join(mentions)
         else:
             logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
             assignee_text = input_text
@@ -292,7 +290,7 @@ def dooray_webhook():
                         "label": "담당자",
                         "name": "assignee",
                         "optional": False,
-                        "value": assignee_text  # ✅ 변환된 멘션 포맷
+                        "value": assignee_text
                     },
                     {"type": "text", "label": "제목", "name": "title", "optional": False},
                     {"type": "text", "label": "기획서 링크", "name": "document", "optional": False},
@@ -300,7 +298,6 @@ def dooray_webhook():
                 ]
             }
         }
-
 
         headers = {"token": cmd_token, "Content-Type": "application/json"}
 
