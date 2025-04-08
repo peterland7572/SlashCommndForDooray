@@ -409,7 +409,7 @@ def interactive_webhook2():
             logger.warning("❌ 이름 조회 실패: member_id=%s", member_id)
 
     # ✅ 이름 나열 + 100자 공백 + ID 나열
-    spacing = ' ' * 100
+    spacing = ' ' * 30
     assignee_text = f"{' '.join(assignee_names_list)}{spacing}{','.join(assignee_ids_list)}"
     logger.info("✅ 최종 assignee_text: %s", assignee_text)
 
