@@ -639,7 +639,7 @@ def interactive_webhook2():
     ]
     
     # 5. 결과 문자열로 조합
-    assignee_text = ", ".join(mentions) if mentions else "없음"
+    assignee_text = "".join(mentions) if mentions else "없음"
     logger.info("✅ 최종 assignee_text: %s", assignee_text)
 
     # ✅ 메시지 구성
@@ -652,12 +652,10 @@ def interactive_webhook2():
                 f"제목: << {title} >>\n"
                 f"기획서: {document if document != '없음' else '없음'}\n"
                 f"내용: {content}\n"
-                f"담당자: {assignee_text}"
+                f"담당자: {assignee_text}\n"
                 f"참조: [@홍석기C/SGE PM팀](dooray://3570973279848255571/members/3571008351482084031 \"admin\") "  # [@홍석기C/SGE PM팀]
                 f"[@노승한/SGE PM팀](dooray://3570973279848255571/members/3571008626725314977 \"admin\") "  # [@노승한/SGE PM팀]
-                f"[@김주현D/SGE PM팀](dooray://3570973279848255571/members/3898983631689925324 \"member\") \n"  # [@김주현D/SGE PM팀]
-                "(dooray://3570973279848255571/members/3898983631689925324 \"member\") \n"
-                
+                f"[@김주현D/SGE PM팀](dooray://3570973279848255571/members/3898983631689925324 \"member\") \n"  # [@김주현D/SGE PM팀]               
     }
 
     webhook_url = "https://projectg.dooray.com/services/3570973280734982045/4037981561969473608/QljyNHwGREyQJsAFbMFp7Q"
