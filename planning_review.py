@@ -1,17 +1,18 @@
 import requests
 import logging
 import re
-import json
 from flask import Flask, request, jsonify
+
 
 DOORAY_ADMIN_API_URL = "https://admin-api.dooray.com/admin/v1/members"
 DOORAY_ADMIN_API_TOKEN = "r4p8dpn3tbv7:SVKeev3aTaerG-q5jyJUgg "  # 토큰
+
+
 
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 def extract_member_id_and_role(mention_text: str):
     """Mentions에서 member ID와 role을 추출하는 함수"""
@@ -68,6 +69,7 @@ def get_member_name_by_id(member_id: str) -> str:
 
     return "알 수 없음"
 
+        
 
 @app.route("/dooray-webhook", methods=["POST"])
 def dooray_webhook():
@@ -172,44 +174,6 @@ def dooray_webhook():
 
                 "submitLabel": "보내기",
 
-                "state": json.dumps({  # 🔹 여기에 커스텀 데이터 추가
-                    "assigneeRaw": assignee_text,  # 예: 원본 assignee 텍스트
-                    "someFlag": True
-                    }),
-
-                "elements": [
-
-                    {"type": "text", "label": "담당자", "name": "assignee", "optional": False, "value": assignee_text},
-
-                    {"type": "text", "label": "제목", "name": "title", "optional": False},
-
-                    {"type": "text", "label": "기획서 링크", "name": "document", "optional": False},
-
-                    {"type": "textarea", "label": "내용", "name": "content", "optional": False}
-
-                ]
-
-            }
-        }
-
-        payload  = {
-
-            "token": cmd_token,
-
-            "triggerId": trigger_id,
-
-            "callbackId": "planning_review_dialog",  # 고유 callbackId 설정
-
-            "state": json.dumps({ "assigneeRaw": assignee_text, "someFlag": True }),
-
-            "dialog": {
-
-                "callbackId": "planning_review_dialog",
-
-                "title": "기획 리뷰 요청",
-
-                "submitLabel": "보내기",
-
                 "elements": [
 
                     {"type": "text", "label": "담당자", "name": "assignee", "optional": False, "value": assignee_text},
@@ -228,7 +192,7 @@ def dooray_webhook():
 
         headers = {"token": cmd_token, "Content-Type": "application/json"}
 
-        response = requests.post(dooray_dialog_url, json=payload, headers=headers)
+        response = requests.post(dooray_dialog_url, json=dialog_data, headers=headers)
 
         if response.status_code == 200:
 
@@ -515,26 +479,9 @@ def interactive_webhook2():
     cmd_token = data.get("cmdToken", "")
     response_url = data.get("responseUrl", "")
     command_request_url = data.get("commandRequestUrl", "")
-    state_str = data.get("state", "{}")
 
     if not submission:
         return jsonify({"responseType": "ephemeral", "text": "⚠️ 입력된 데이터가 없습니다."}), 400
-
-    try:
-        state = json.loads(state_str)
-        # 혹시 한 번 더 감싸졌다면 또 파싱
-        if isinstance(state, str):
-            state = json.loads(state)
-    except Exception as e:
-        logger.warning("⚠️ state 파싱 실패: %s", e)
-        state = {}
-
-
-    # 🎯 Step 2: 값 추출
-    assignee_raw = state.get("assigneeRaw", "지정 안 됨")
-    some_flag = state.get("someFlag", False)
-
-    logger.info("🧠 State: assigneeRaw=%s, someFlag=%s", assignee_raw, some_flag)
 
     # 폼 입력값 처리
     title = submission.get("title", "제목 없음")
@@ -595,6 +542,7 @@ def interactive_webhook2():
     else:
         logger.error("❌ 기획 검토 메시지 전송 실패: %s", response.text)
         return jsonify({"responseType": "ephemeral", "text": "❌ 기획 검토 요청 전송에 실패했습니다."}), 500
+
 
 
 if __name__ == "__main__":
