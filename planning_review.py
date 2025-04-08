@@ -226,7 +226,7 @@ def dooray_webhook():
                 logger.warning("❌ 해당 member_id에 대한 이름을 찾을 수 없습니다: %s", member_id)
     
         # ✅ 최종 포맷
-        spacing = ' ' * 100
+        spacing = ' ' * 30
         assignee_text = f"{' '.join(assignee_names_list)}{spacing}{','.join(assignee_ids_list)}"
         logger.info("✅ 최종 assignee_text: %s", assignee_text)
 
