@@ -190,8 +190,9 @@ def dooray_webhook():
                 ]
 
             }
+        }
 
-            payload  = {
+        payload  = {
 
             "token": cmd_token,
 
