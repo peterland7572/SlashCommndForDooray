@@ -353,7 +353,7 @@ def interactive_webhook2():
 
 
 '''
-
+@app.route("/interactive-webhook2", methods=["POST"])
 def interactive_webhook2():
     """Dooray /planning_review 요청을 처리하는 웹훅"""
 
