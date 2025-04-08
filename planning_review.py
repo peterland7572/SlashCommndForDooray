@@ -204,18 +204,18 @@ def dooray_webhook():
 
     if command == "/planning_review":
         logger.info("🛠 /planning_review 진입")
-    
+
         input_text = data.get("text", "").strip()
         logger.info("🔹 원본 텍스트: %s", input_text)
-    
+
         # ✅ 이름들 추출 (예: @홍길동 @김기획)
         name_pattern = r'@(\S+)'  # 공백 아닌 문자와 @ 조합 추출
         names = re.findall(name_pattern, input_text)
         logger.info("🧾 추출된 이름들: %s", names)
-    
+
         assignee_names_list = []
         assignee_ids_list = []
-    
+
         for name in names:
             member_id = get_member_id_by_name(name)
             if member_id:
@@ -224,15 +224,11 @@ def dooray_webhook():
                 logger.info("👤 이름 매핑: %s → %s", name, member_id)
             else:
                 logger.warning("❌ 해당 이름에 대한 ID를 찾을 수 없습니다: %s", name)
-    
+
         # ✅ 최종 포맷 구성
         spacing = ' ' * 100  # 공백
         assignee_text = f"{' '.join(assignee_names_list)}{spacing}{','.join(assignee_ids_list)}"
         logger.info("✅ 최종 assignee_text: %s", assignee_text)
-
-    else:
-        logger.warning("⚠️ 멘션 포맷 아님 또는 파싱 실패, 그대로 사용")
-        assignee_text = input_text
 
         dialog_data = {
             "token": cmd_token,
@@ -286,6 +282,7 @@ def dooray_webhook():
             }), 500
 
     return jsonify({"text": "Unknown command", "responseType": "ephemeral"}), 400
+
 
 '''
 @app.route("/interactive-webhook2", methods=["POST"])
@@ -366,6 +363,8 @@ def interactive_webhook2():
 
 
 '''
+
+
 @app.route("/interactive-webhook2", methods=["POST"])
 def interactive_webhook2():
     """Dooray /planning_review 요청을 처리하는 웹훅"""
