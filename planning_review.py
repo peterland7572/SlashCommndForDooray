@@ -54,7 +54,7 @@ def get_all_members():
 def get_all_members():
     logger.info("📥 Dooray 전체 멤버 조회 시작")
 
-    api_url = "https://admin-api.dooray.com/admin/v1/members"
+    api_url = "https://admin-api.dooray.com/admin/v1/members?size=100"
     headers = {
         "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
         "Content-Type": "application/json"
