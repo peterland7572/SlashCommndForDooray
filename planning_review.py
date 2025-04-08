@@ -648,7 +648,7 @@ def interactive_webhook2():
         "channelId": channel_id,
         "triggerId": trigger_id,
         "replaceOriginal": "false",
-        "text": f"**[기획 검토 요청]**\n"
+        "text": f"**[모임 요청]**\n"
                 f"제목: << {title} >>\n"
                 f"기획서: {document if document != '없음' else '없음'}\n"
                 f"내용: {content}\n"
