@@ -385,35 +385,32 @@ def interactive_webhook2():
     if not submission:
         return jsonify({"responseType": "ephemeral", "text": "⚠️ 입력된 데이터가 없습니다."}), 400
 
-    # 폼 입력값 처리
+    # ✅ 폼 입력값 처리
     title = submission.get("title", "제목 없음")
     content = submission.get("content", "내용 없음")
     document = submission.get("document", "없음")
-    assignee_tags = submission.get("assignee", "")  # 여러 명 가능
+    assignee_tags = submission.get("assignee", "")  # Dooray 멘션 포맷 문자열
 
-    # ✅ 여러 멘션 추출
-    mention_pattern = r'\(dooray://\d+/members/(\d+)\s+"(member|admin)"\)'
-    mentions = re.findall(mention_pattern, assignee_tags)
-    logger.info("🔍 추출된 멘션 개수: %d", len(mentions))
+    # ✅ assignee_tags에서 member_id 직접 추출
+    id_pattern = r'\(dooray://\d+/members/(\d+)\s+"(?:member|admin)"\)'
+    member_ids = re.findall(id_pattern, assignee_tags)
+    logger.info("🔍 추출된 member_id 목록: %s", member_ids)
 
-    assignee_names_list = []
-    assignee_ids_list = []
-
-    for member_id, role in mentions:
+    mentions = []
+    for member_id in member_ids:
         name = get_member_name_by_id(member_id)
-        logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
         if name:
-            assignee_names_list.append(f"@{name}")
-            assignee_ids_list.append(member_id)
+            mention = f"[@{name}](dooray://{tenant_domain}/members/{member_id} \"member\")"
+            mentions.append(mention)
+            logger.info("✅ 멘션 생성: %s", mention)
         else:
-            logger.warning("❌ 이름 조회 실패: member_id=%s", member_id)
+            logger.warning("⚠️ 이름 조회 실패: member_id=%s", member_id)
+            mentions.append(f"[unknown](dooray://{tenant_domain}/members/{member_id} \"member\")")
 
-    # ✅ 이름 나열 + 100자 공백 + ID 나열
-    spacing = ' ' * 30
-    assignee_text = f"{' '.join(assignee_names_list)}{spacing}{','.join(assignee_ids_list)}"
+    assignee_text = ", ".join(mentions) if mentions else "없음"
     logger.info("✅ 최종 assignee_text: %s", assignee_text)
 
-    # 메시지 구성
+    # ✅ 메시지 구성
     response_data = {
         "responseType": "inChannel",
         "channelId": channel_id,
