@@ -164,11 +164,6 @@ def dooray_webhook():
 
             "callbackId": "planning_review_dialog",  # 고유 callbackId 설정
 
-            "state": json.dumps({  # 🔹 여기에 커스텀 데이터 추가
-                "assigneeRaw": assignee_text,  # 예: 원본 assignee 텍스트
-                "someFlag": True
-            }),
-
             "dialog": {
 
                 "callbackId": "planning_review_dialog",
@@ -176,6 +171,11 @@ def dooray_webhook():
                 "title": "기획 리뷰 요청",
 
                 "submitLabel": "보내기",
+
+                "state": json.dumps({  # 🔹 여기에 커스텀 데이터 추가
+                    "assigneeRaw": assignee_text,  # 예: 원본 assignee 텍스트
+                    "someFlag": True
+                    }),
 
                 "elements": [
 
