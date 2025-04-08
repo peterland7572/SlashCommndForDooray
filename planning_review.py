@@ -592,27 +592,28 @@ def interactive_webhook2():
     if not submission:
         return jsonify({"responseType": "ephemeral", "text": "⚠️ 입력된 데이터가 없습니다."}), 400
 
-    # 폼 입력값 처리
+    # ✅ 폼 입력값 처리
     title = submission.get("title", "제목 없음")
     content = submission.get("content", "내용 없음")
     document = submission.get("document", "없음")
-    assignee_tags = submission.get("assignee", "")  # Dooray 멘션 포맷 문자열들
+    assignee_tags = submission.get("assignee", "")  # ex) "@김철수 @박영희/기획팀"
 
-    # ✅ 멤버 ID 목록 추출 (복수 가능)
-    id_pattern = r'\(dooray://\d+/members/(\d+)\s+"(?:member|admin)"\)'
-    member_ids = re.findall(id_pattern, assignee_tags)
-    logger.info("🔍 추출된 member_id 목록: %s", member_ids)
+    # ✅ '@이름' 형식 추출
+    mention_pattern = r'@([^\s,]+)'
+    names = re.findall(mention_pattern, assignee_tags)
+    logger.info("🔍 추출된 이름 목록: %s", names)
 
     mentions = []
-    for member_id in member_ids:
-        name = get_member_name_by_id(member_id)
-        if name:
+    for name in names:
+        logger.info("🔎 이름 처리 중: %s", name)
+        member_id = get_member_id_by_name(name)
+        if member_id:
             mention = f"[@{name}](dooray://{tenant_domain}/members/{member_id} \"member\")"
+            logger.info("✅ 멘션 생성 완료: %s", mention)
             mentions.append(mention)
-            logger.info("✅ 멘션 생성: %s", mention)
         else:
-            logger.warning("⚠️ 이름 조회 실패: member_id=%s", member_id)
-            mentions.append(f"[unknown](dooray://{tenant_domain}/members/{member_id} \"member\")")
+            logger.warning("⚠️ member_id를 찾을 수 없음: %s", name)
+            mentions.append(f"@{name} (찾을 수 없음)")
 
     assignee_text = ", ".join(mentions) if mentions else "없음"
     logger.info("✅ 최종 assignee_text: %s", assignee_text)
@@ -641,6 +642,7 @@ def interactive_webhook2():
     else:
         logger.error("❌ 기획 검토 메시지 전송 실패: %s", response.text)
         return jsonify({"responseType": "ephemeral", "text": "❌ 기획 검토 요청 전송에 실패했습니다."}), 500
+
 
 
 
