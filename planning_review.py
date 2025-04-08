@@ -204,31 +204,32 @@ def dooray_webhook():
 
     if command == "/planning_review":
         logger.info("🛠 /planning_review 진입")
-
+    
         input_text = data.get("text", "").strip()
         logger.info("🔹 원본 텍스트: %s", input_text)
-
-        # ✅ 이름들 추출 (예: @홍길동 @김기획)
-        name_pattern = r'@(\S+)'  # 공백 아닌 문자와 @ 조합 추출
-        names = re.findall(name_pattern, input_text)
-        logger.info("🧾 추출된 이름들: %s", names)
-
+    
+        # ✅ 멘션 추출 (dooray 멘션 포맷)
+        mention_pattern = r'\(dooray://\d+/members/(\d+)\s+"(member|admin)"\)'
+        mentions = re.findall(mention_pattern, input_text)
+        logger.info("🔍 추출된 멤버 수: %d", len(mentions))
+    
         assignee_names_list = []
         assignee_ids_list = []
-
-        for name in names:
-            member_id = get_member_id_by_name(name)
-            if member_id:
+    
+        for member_id, role in mentions:
+            name = get_member_name_by_id(member_id)
+            if name:
                 assignee_names_list.append(f"@{name}")
                 assignee_ids_list.append(member_id)
-                logger.info("👤 이름 매핑: %s → %s", name, member_id)
+                logger.info("👤 이름 매핑: %s → %s", member_id, name)
             else:
-                logger.warning("❌ 해당 이름에 대한 ID를 찾을 수 없습니다: %s", name)
-
-        # ✅ 최종 포맷 구성
-        spacing = ' ' * 100  # 공백
+                logger.warning("❌ 해당 member_id에 대한 이름을 찾을 수 없습니다: %s", member_id)
+    
+        # ✅ 최종 포맷
+        spacing = ' ' * 100
         assignee_text = f"{' '.join(assignee_names_list)}{spacing}{','.join(assignee_ids_list)}"
         logger.info("✅ 최종 assignee_text: %s", assignee_text)
+
 
         dialog_data = {
             "token": cmd_token,
