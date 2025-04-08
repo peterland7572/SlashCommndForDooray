@@ -370,13 +370,12 @@ def interactive_webhook2():
 def interactive_webhook2():
     """Dooray /planning_review 요청을 처리하는 웹훅"""
 
-    logger.info("⚠️interactive_webhook2(): 시작 ⚠️")
+    logger.info("⚠️ interactive_webhook2(): 시작 ⚠️")
     data = request.json
     logger.info("📥 Received Interactive Action (planning_review): %s", data)
 
     tenant_domain = data.get("tenantDomain")
     channel_id = data.get("channelId")
-    callback_id = data.get("callbackId")
     trigger_id = data.get("triggerId", "")
     submission = data.get("submission", {})
     cmd_token = data.get("cmdToken", "")
@@ -392,34 +391,27 @@ def interactive_webhook2():
     document = submission.get("document", "없음")
     assignee_tags = submission.get("assignee", "")  # 여러 명 가능
 
-    mentions = []
+    # ✅ 여러 멘션 추출
+    mention_pattern = r'\(dooray://\d+/members/(\d+)\s+"(member|admin)"\)'
+    mentions = re.findall(mention_pattern, assignee_tags)
+    logger.info("🔍 추출된 멘션 개수: %d", len(mentions))
 
-    # ✅ 여러 멘션 추출 (괄호 포함한 문자열)
-    mention_pattern = r'\(dooray://\d+/members/\d+\s+"(?:member|admin)"\)'
-    mentions_raw = re.findall(mention_pattern, assignee_tags)
-    logger.info("🔍 추출된 mention 개수: %d", len(mentions_raw))
+    assignee_names_list = []
+    assignee_ids_list = []
 
-    for mention_text in mentions_raw:
-        logger.info("🔹 처리 중인 mention: %s", mention_text)
-
-        member_id, role = extract_member_id_and_role(mention_text)
-        logger.info("🔍 추출된 ID 및 역할: member_id=%s, role=%s", member_id, role)
-
-        if member_id and role:
-            name = get_member_name_by_id(member_id)
-            logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
-
-            # mention = f"[@{name}](dooray://3570973280734982045/members/{member_id} \"{role}\")"
-            mention = f"[@{name}](dooray://3570973279848255571/members/{member_id} \"{role}\")"
-            logger.info("📎 생성된 mention: %s", mention)
-
-            mentions.append(mention)
+    for member_id, role in mentions:
+        name = get_member_name_by_id(member_id)
+        logger.info("👤 이름 조회 결과: member_id=%s, name=%s", member_id, name)
+        if name:
+            assignee_names_list.append(f"@{name}")
+            assignee_ids_list.append(member_id)
         else:
-            logger.info("🔁 mention 형식 아님, 원본 유지: %s", mention_text)
-            mentions.append(mention_text)
+            logger.warning("❌ 이름 조회 실패: member_id=%s", member_id)
 
-    assignee_text = " ".join(mentions) if mentions else "없음"
-    logger.info("✅ 최종 assignee mention: %s", assignee_text)
+    # ✅ 이름 나열 + 100자 공백 + ID 나열
+    spacing = ' ' * 100
+    assignee_text = f"{' '.join(assignee_names_list)}{spacing}{','.join(assignee_ids_list)}"
+    logger.info("✅ 최종 assignee_text: %s", assignee_text)
 
     # 메시지 구성
     response_data = {
@@ -445,6 +437,7 @@ def interactive_webhook2():
     else:
         logger.error("❌ 기획 검토 메시지 전송 실패: %s", response.text)
         return jsonify({"responseType": "ephemeral", "text": "❌ 기획 검토 요청 전송에 실패했습니다."}), 500
+
 
 
 if __name__ == "__main__":
