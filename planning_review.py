@@ -489,8 +489,13 @@ def interactive_webhook2():
 
     try:
         state = json.loads(state_str)
-    except json.JSONDecodeError:
+        # 혹시 한 번 더 감싸졌다면 또 파싱
+        if isinstance(state, str):
+            state = json.loads(state)
+    except Exception as e:
+        logger.warning("⚠️ state 파싱 실패: %s", e)
         state = {}
+
 
     # 🎯 Step 2: 값 추출
     assignee_raw = state.get("assigneeRaw", "지정 안 됨")
