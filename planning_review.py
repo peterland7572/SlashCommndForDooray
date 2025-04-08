@@ -389,10 +389,10 @@ def interactive_webhook2():
     title = submission.get("title", "제목 없음")
     content = submission.get("content", "내용 없음")
     document = submission.get("document", "없음")
-    assignee_tags = submission.get("assignee", "")  # Dooray 멘션 포맷 문자열
+    assignee_tags = submission.get("assignee", "")  # "@이름 부서명     member_id" 형식
 
-    # ✅ assignee_tags에서 member_id 직접 추출
-    id_pattern = r'\(dooray://\d+/members/(\d+)\s+"(?:member|admin)"\)'
+    # ✅ member_id 직접 추출 (16자리 이상 숫자)
+    id_pattern = r'\b(\d{16,})\b'
     member_ids = re.findall(id_pattern, assignee_tags)
     logger.info("🔍 추출된 member_id 목록: %s", member_ids)
 
@@ -434,6 +434,7 @@ def interactive_webhook2():
     else:
         logger.error("❌ 기획 검토 메시지 전송 실패: %s", response.text)
         return jsonify({"responseType": "ephemeral", "text": "❌ 기획 검토 요청 전송에 실패했습니다."}), 500
+
 
 
 
