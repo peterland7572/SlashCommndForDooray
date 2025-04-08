@@ -54,7 +54,7 @@ def get_all_members():
 def get_all_members():
     logger.info("📥 Dooray 전체 멤버 조회 시작")
 
-    api_url = "https://admin-api.dooray.com/admin/v1/members?size=100"
+    base_url = "https://admin-api.dooray.com/admin/v1/members?size=100"
     headers = {
         "Authorization": f"dooray-api {DOORAY_ADMIN_API_TOKEN}",
         "Content-Type": "application/json"
@@ -62,10 +62,9 @@ def get_all_members():
 
     all_members = []
     page = 0
-    limit = 100
 
     while True:
-        paged_url = f"{api_url}?page={page}&limit={limit}"
+        paged_url = f"{base_url}&page={page}"
         try:
             response = requests.get(paged_url, headers=headers)
             response.raise_for_status()
@@ -81,7 +80,7 @@ def get_all_members():
 
         all_members.extend(result)
 
-        for i, member in enumerate(result, start=page * limit + 1):
+        for i, member in enumerate(result, start=page * 100 + 1):
             name = member.get("name", "이름 없음")
             nickname = member.get("nickname", "닉네임 없음")
             user_code = member.get("userCode", "코드 없음")
@@ -94,13 +93,14 @@ def get_all_members():
             logger.info(f"[{i}] 이름: {name}, 닉네임: {nickname}, 코드: {user_code}, 이메일: {email}, "
                         f"직책: {position}, 부서: {department}, 입사일: {joined_at}, 역할: {role}")
 
-        if len(result) < limit:
+        if len(result) < 100:
             break
 
         page += 1
 
     logger.info("👥 전체 멤버 수: %d", len(all_members))
     return all_members
+
 
 
 def get_member_id_by_name(name):
