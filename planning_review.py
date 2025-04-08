@@ -251,8 +251,8 @@ def dooray_webhook():
             return jsonify({"responseType": "ephemeral", "text": "업무 요청이 전송이 실패했습니다."}), 500
 
 
-    elif command == "/planning_review":
-        logger.info("🛠 /planning_review 진입")
+    elif command == "/모임요청":
+        logger.info("/모임요청 진입")
     
         input_text = data.get("text", "").strip()
         logger.info("🔹 원본 텍스트: %s", input_text)
@@ -279,10 +279,10 @@ def dooray_webhook():
         dialog_data = {
             "token": cmd_token,
             "triggerId": trigger_id,
-            "callbackId": "planning_review_dialog",
+            "callbackId": "meeting_review_dialog",
             "dialog": {
-                "callbackId": "planning_review_dialog",
-                "title": "기획 리뷰 요청",
+                "callbackId": "meeting_review_dialog",
+                "title": "모임요청",
                 "submitLabel": "보내기",
                 "elements": [
                     {
@@ -293,8 +293,8 @@ def dooray_webhook():
                         "value": assignee_text
                     },
                     {"type": "text", "label": "제목", "name": "title", "optional": False},
-                    {"type": "text", "label": "기획서 링크", "name": "document", "optional": False},
-                    {"type": "textarea", "label": "내용", "name": "content", "optional": False}
+                    {"type": "text", "label": "기획서 링크", "name": "document", "optional": True},
+                    {"type": "textarea", "label": "내용", "name": "content", "optional": True}
                 ]
             }
         }
@@ -305,25 +305,25 @@ def dooray_webhook():
 
         if response.status_code == 200:
 
-            logger.info("✅ 기획 리뷰 Dialog 생성 성공")
+            logger.info("✅ 모임요청Dialog 생성 성공")
 
             return jsonify({
 
                 "responseType": "ephemeral",
 
-                "text": "기획 리뷰 요청을 위한 창이 열렸습니다!"
+                "text": "모임요청 요청을 위한 창이 열렸습니다!"
 
             }), 200
 
         else:
 
-            logger.error("❌ 기획 리뷰 Dialog 생성 실패: %s", response.text)
+            logger.error("❌ 모임요청 Dialog 생성 실패: %s", response.text)
 
             return jsonify({
 
                 "responseType": "ephemeral",
 
-                "text": "기획 리뷰 요청에 실패했습니다."
+                "text": "모임요청에 실패했습니다."
 
             }), 500
 
@@ -578,7 +578,7 @@ def interactive_webhook2():
 
     logger.info("⚠️interactive_webhook2(): 시작 ⚠️")
     data = request.json
-    logger.info("📥 Received Interactive Action (planning_review): %s", data)
+    logger.info("📥 Received Interactive Action (meeting_review): %s", data)
 
     tenant_domain = data.get("tenantDomain")
     channel_id = data.get("channelId")
@@ -648,7 +648,7 @@ def interactive_webhook2():
         "channelId": channel_id,
         "triggerId": trigger_id,
         "replaceOriginal": "false",
-        "text": f"**[모임 요청]**\n"
+        "text": f"**[기획 검토 요청]**\n"
                 f"제목: << {title} >>\n"
                 f"기획서: {document if document != '없음' else '없음'}\n"
                 f"내용: {content}\n"
