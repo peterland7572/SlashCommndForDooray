@@ -241,7 +241,7 @@ def dooray_webhook():
                 "submitLabel": "보내기",
                 "elements": [
                     {
-                        "type": "text",
+                        "type": "textarea",
                         "label": "담당자",
                         "name": "assignee",
                         "optional": False,
